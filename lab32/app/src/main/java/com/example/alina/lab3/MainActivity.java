@@ -8,7 +8,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -20,14 +19,10 @@ import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.StringTokenizer;
 
 public class MainActivity extends AppCompatActivity {
     Integer[] sizes = {12, 14, 16, 20, 24, 36};
@@ -37,7 +32,6 @@ public class MainActivity extends AppCompatActivity {
     Integer record;
     Button butt3;
     private final static String FILE_NAME = "content.txt";
-  //  private String TAG_WRITE_READ_FILE = "TAG_WRITE_READ_FILE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -171,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
             mess = mess.toString();
             bw.write("текст: "+mess + " шрифт: " + index);
             bw.newLine();
+            Toast.makeText(this, "Данные сохранены", Toast.LENGTH_SHORT).show();
             bw.close();
         } catch (IOException e) {
             e.printStackTrace();
