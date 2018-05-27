@@ -1,8 +1,10 @@
 package com.example.alina.lab3;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -24,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,9 +35,9 @@ public class MainActivity extends AppCompatActivity {
     TextView text;
     EditText edit;
     Integer record;
-    Button butt3, butt4;
+    Button butt3;
     private final static String FILE_NAME = "content.txt";
-    private String TAG_WRITE_READ_FILE = "TAG_WRITE_READ_FILE";
+  //  private String TAG_WRITE_READ_FILE = "TAG_WRITE_READ_FILE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
         Button butt1 = (Button) findViewById(R.id.button1);
         Button butt2 = (Button) findViewById(R.id.button2);
         butt3 = (Button) findViewById(R.id.button3);
-        butt4 = (Button) findViewById(R.id.button4);
         edit = (EditText) findViewById(R.id.editText);
 
 
@@ -87,12 +89,26 @@ public class MainActivity extends AppCompatActivity {
 
             }
         };
+
+        try {
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
+                    openFileOutput(FILE_NAME, MODE_PRIVATE)));
+            bw.write("");
+            bw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         sp.setOnItemSelectedListener(itemSelectedListener);
 
         butt1.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 text.setTextSize(record);
                 text.setText(edit.getText());
+                CharSequence messag = edit.getText();
+                CharSequence index = Integer.toString(record);
+
+                writeToFile(messag, index);
 
             }
         });
@@ -106,126 +122,58 @@ public class MainActivity extends AppCompatActivity {
 
         butt3.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-              //  StringBuilder result = new StringBuilder();
-                String mess = edit.getText().toString() + ":" + record.toString();
-               // while (mess != null) {
-              //      result.append('\n').append(mess);
-              //  }
 
-                if(TextUtils.isEmpty(mess))
-                {
-                    Toast.makeText(getApplicationContext(), "Input data can not be empty.", Toast.LENGTH_LONG).show();
-                    return;
-                }else {
-                    Context ctx = getApplicationContext();
+                ArrayList<String> mess = readFile();
 
-                    try
-                    {
-                        FileOutputStream fileOutputStream = ctx.openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
-                        writeDataToFile(fileOutputStream, mess);
-                        Toast.makeText(ctx, "Data has been written to file " + FILE_NAME, Toast.LENGTH_LONG).show();
-                    }catch(FileNotFoundException ex)
-                    {
-                        Log.e(TAG_WRITE_READ_FILE, ex.getMessage(), ex);
-                    }
+                String ordersText = TextUtils.join("\n\n\n", mess);
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Список данных")
+                        .setMessage(ordersText)
 
+                        .setCancelable(false)
+                        .setNegativeButton("Закрыть",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+                AlertDialog alert = builder.create();
+                alert.show();
 
-                }
             }
         });
 
-        butt4.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                StringBuilder text1 = new StringBuilder();
-                try {
-                    Context ctx = getApplicationContext();
-
-                    FileInputStream fileInputStream = ctx.openFileInput(FILE_NAME);
-
-                 /* //  try {
-                        if (fileInputStream != null) {
-                            InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
-                            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-                            String lineData;
-                            while ((lineData = bufferedReader.readLine()) != null) {
-                                text1.append(lineData);
-                                text.setText(text1.toString());
-                                text1.append("\n");
-                            }
-                        }*/
-                   // }catch(IOException ex)
-                  //  {
-                   //     Log.e(TAG_WRITE_READ_FILE, ex.getMessage(), ex);
-                   // }
-
-                    String fileData = readFromFileInputStream(fileInputStream);
-                    StringTokenizer tokens = new StringTokenizer(fileData, "\n");
-                    String first = tokens.nextToken();
-                    String second = tokens.nextToken();
-                    Integer size = Integer.parseInt(second);
-
-                    if(first.length()>0) {
-                       // text.setTextSize(size);
-                        text.setText(first);
-                        Toast.makeText(ctx, "Load saved data complete.", Toast.LENGTH_SHORT).show();
-                    }else
-                    {
-                        Toast.makeText(ctx, "Not load any data.", Toast.LENGTH_SHORT).show();
-                    }
-                }catch(IOException ex)
-                {
-                    Log.e(TAG_WRITE_READ_FILE, ex.getMessage(), ex);
-                }
-            }
-        });
 
     }
 
-
-    // This method will write data to FileOutputStream.
-    private void writeDataToFile(FileOutputStream fileOutputStream, String data)
-    {
+    ArrayList<String> readFile() {
+        ArrayList<String> mess = new ArrayList<>();
         try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutputStream);
-            BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+            BufferedReader br = new BufferedReader(new InputStreamReader(
+                    openFileInput(FILE_NAME)));
 
-            bufferedWriter.write(data);
-
-            bufferedWriter.flush();
-            bufferedWriter.close();
-            outputStreamWriter.close();
-        }catch(FileNotFoundException ex)
-        {
-            Log.e(TAG_WRITE_READ_FILE, ex.getMessage(), ex);
-        }catch(IOException ex)
-        {
-            Log.e(TAG_WRITE_READ_FILE, ex.getMessage(), ex);
+            String tempStr;
+            while ((tempStr = br.readLine()) != null) {
+                mess.add(tempStr);
+            }
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        return mess;
     }
 
-    // This method will read data from FileInputStream.
-    private String readFromFileInputStream(FileInputStream fileInputStream)
-    {
-        StringBuilder text1 = new StringBuilder();
-
+    void writeToFile(CharSequence mess, CharSequence index) {
         try {
-            if (fileInputStream != null) {
-                InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
+                    openFileOutput(FILE_NAME, MODE_APPEND)));
 
-                String lineData;
-                while ((lineData = bufferedReader.readLine()) != null) {
-                    text1.append(lineData);
-                    text1.append("\n");
-                }
-            }
-        }catch(IOException ex)
-        {
-            Log.e(TAG_WRITE_READ_FILE, ex.getMessage(), ex);
-        }finally
-        {
-            return text1.toString();
+            mess = mess.toString();
+            bw.write("текст: "+mess + " шрифт: " + index);
+            bw.newLine();
+            bw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
